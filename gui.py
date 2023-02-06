@@ -1,5 +1,6 @@
 # import pyqt module
 import sys
+from PyQt6 import QtWidgets
 from PyQt6.QtWidgets import(
     QApplication,
     QFormLayout,
@@ -8,6 +9,7 @@ from PyQt6.QtWidgets import(
     QWidget,
     QDialog,
     QDialogButtonBox,
+    QPushButton,
     QVBoxLayout,
     QHBoxLayout
 )
@@ -20,6 +22,26 @@ class Login(QDialog):
     def __init__(self):
         super().__init__()
         self.loginLayout = QVBoxLayout()
+        self.loginFormLayout = QFormLayout()
+        self.loginName = QLineEdit()
+        self.loginFormLayout.addRow("Name: ", self.loginName) 
+        self.loginPassword = QLineEdit()
+        self.loginFormLayout.addRow("Password: ", self.loginPassword) 
+        self.loginLayout.addLayout(self.loginFormLayout)
+
+        self.loginButton = QPushButton("login")
+        self.loginLayout.addWidget(self.loginButton)
+        self.loginButton.clicked.connect(self._checkUser)
+        self.setLayout(self.loginLayout)
+
+    def _checkUser(self):
+        if (self.loginName.text() == "testUser" and self.loginPassword.text() == "password"):
+            window = Window()
+            widget.addWidget(window)
+            widget.setCurrentIndex(widget.currentIndex()+1)
+
+
+
 
 class Window(QDialog):
     def __init__(self):
@@ -42,13 +64,15 @@ class Window(QDialog):
             QDialogButtonBox.StandardButton.Cancel|
             QDialogButtonBox.StandardButton.Ok
         )
-
+        self.logoutButton = QPushButton("Logout")
         # https://stackoverflow.com/questions/33547821/execute-function-after-click-ok-qdialogbuttonbox
         # try-except case
         self.buttons.accepted.connect(self._accept)
         self.buttons.rejected.connect(self._reject)
+        self.logoutButton.clicked.connect(self._logout)
         
         self.appLayout.addWidget(self.buttons)
+        self.appLayout.addWidget(self.logoutButton)
         self.setLayout(self.appLayout)
 
     def _accept(self):
@@ -70,6 +94,11 @@ class Window(QDialog):
         print("request declined.")
         # sys.exit()
     
+    def _logout(self):
+        login = Login()
+        widget.addWidget(login)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
 def pdf_file(name, class_price, note):
     print("entered this line")
     class_price_list = class_price.split("\n")
@@ -100,6 +129,15 @@ def pdf_file(name, class_price, note):
         
 if __name__ == "__main__":
     app = QApplication([])
+
+    # https://www.youtube.com/watch?v=82v2ZR-g6wY
+    widget = QtWidgets.QStackedWidget()
+    login = Login()
     window = Window()
-    window.show()
+    widget.addWidget(login)
+    #widget.addWidget(window)
+
+    widget.setFixedHeight(400)
+    widget.setFixedWidth(400)
+    widget.show()
     sys.exit(app.exec())
