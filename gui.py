@@ -11,36 +11,64 @@ from PyQt6.QtWidgets import(
     QDialogButtonBox,
     QPushButton,
     QVBoxLayout,
-    QHBoxLayout
+    QHBoxLayout,
 )
-
-from datetime import datetime
-import jinja2
-import pdfkit
+from PyQt6.QtCore import Qt
+from pdfFile import pdfFile
+import bcrypt
 
 class Login(QDialog):
     def __init__(self):
         super().__init__()
-        self.loginLayout = QVBoxLayout()
-        self.loginFormLayout = QFormLayout()
+        loginLayout = QVBoxLayout()
+        loginFormLayout = QFormLayout()
         self.loginName = QLineEdit()
-        self.loginFormLayout.addRow("Name: ", self.loginName) 
+        self.loginName.setFixedWidth(150)
+        loginFormLayout.addRow("Name: ", self.loginName) 
         self.loginPassword = QLineEdit()
-        self.loginFormLayout.addRow("Password: ", self.loginPassword) 
-        self.loginLayout.addLayout(self.loginFormLayout)
+        self.loginPassword.setFixedWidth(150)
+        # setEchoMode: prevent from showing the password text
+        self.loginPassword.setEchoMode(QLineEdit.EchoMode.Password) 
+        loginFormLayout.addRow("Password: ", self.loginPassword) 
+        
+        loginLayout.addLayout(loginFormLayout)
+        loginFormLayout.setFormAlignment(Qt.AlignmentFlag.AlignCenter)  # Question: addLayout then setFormAlignment 
 
-        self.loginButton = QPushButton("login")
-        self.loginLayout.addWidget(self.loginButton)
-        self.loginButton.clicked.connect(self._checkUser)
-        self.setLayout(self.loginLayout)
+        # login button and its related function
+        loginButton = QPushButton("login")
+        registerButton = QPushButton("register")
+        loginLayout.addWidget(loginButton)
+        loginLayout.addWidget(registerButton)
+        loginButton.clicked.connect(self._checkUser)
+        registerButton.clicked.connect(self._toRegisterPage)
+        self.setLayout(loginLayout)
 
     def _checkUser(self):
-        if (self.loginName.text() == "testUser" and self.loginPassword.text() == "password"):
+        # basic use of bcrypt
+        password = "password"
+        bytes = password.encode('utf-8')
+        # invalid salt ?
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(bytes, salt)
+        check_password = bcrypt.checkpw(self.loginPassword.text().encode('utf-8'), hash) # userInput, hash
+
+        if (self.loginName.text() == "testUser" and check_password):
             window = Window()
             widget.addWidget(window)
             widget.setCurrentIndex(widget.currentIndex()+1)
+    
+    def _toRegisterPage(self):
+        register = Register()
+        widget.addWidget(register)
+        widget.setCurrentIndex(widget.currentIndex()+1)
 
-
+class Register(QDialog):
+    def __init__(self):
+        super().__init__()
+        RegisterLayout = QVBoxLayout()
+        complete = QPushButton("complete")
+        RegisterLayout.addWidget(complete)
+        self.setLayout(RegisterLayout)
 
 
 class Window(QDialog):
@@ -82,7 +110,7 @@ class Window(QDialog):
         class_pricing_data = self.class_pricing.toPlainText()
         note_data = self.note.text()
         # generating pdf file
-        pdf_file(name_data, class_pricing_data, note_data)
+        pdfFile(name_data, class_pricing_data, note_data)
 
         sys.exit()
 
@@ -99,32 +127,6 @@ class Window(QDialog):
         widget.addWidget(login)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
-def pdf_file(name, class_price, note):
-    print("entered this line")
-    class_price_list = class_price.split("\n")
-    print(class_price_list)
-    
-    total = 0
-    storage = []
-    for line_input in class_price_list:
-        entry = line_input.split(",")
-        entry[1] = int(entry[1])
-        total += entry[1]
-        storage.append(entry)
-
-    today_date = datetime.today().strftime("%d %b, %Y")
-
-    # loading template
-    template_loader = jinja2.FileSystemLoader("./")
-    template_env = jinja2.Environment(loader = template_loader)
-
-    template = template_env.get_template("template.html")
-    context = {"myname": name, "entry": storage, "date": today_date, "total": total}
-    output_text = template.render(context)
-
-    config = pdfkit.configuration(wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
-    pdfkit.from_string(output_text, "pdf_generated.pdf", configuration = config, css="./style.css")
-
 
         
 if __name__ == "__main__":
@@ -139,5 +141,6 @@ if __name__ == "__main__":
 
     widget.setFixedHeight(400)
     widget.setFixedWidth(400)
+    widget.setWindowTitle("receipt app")
     widget.show()
     sys.exit(app.exec())
