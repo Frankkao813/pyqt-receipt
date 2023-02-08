@@ -12,6 +12,8 @@ from PyQt6.QtWidgets import(
     QPushButton,
     QVBoxLayout,
     QHBoxLayout,
+    QLabel,
+    QDateEdit
 )
 from PyQt6.QtCore import Qt
 from pdfFile import pdfFile
@@ -20,7 +22,9 @@ import bcrypt
 class Login(QDialog):
     def __init__(self):
         super().__init__()
+        loginTitle = QLabel("login")
         loginLayout = QVBoxLayout()
+        loginLayout.addWidget(loginTitle)
         loginFormLayout = QFormLayout()
         self.loginName = QLineEdit()
         self.loginName.setFixedWidth(150)
@@ -37,6 +41,7 @@ class Login(QDialog):
         # login button and its related function
         loginButton = QPushButton("login")
         registerButton = QPushButton("register")
+        
         loginLayout.addWidget(loginButton)
         loginLayout.addWidget(registerButton)
         loginButton.clicked.connect(self._checkUser)
@@ -47,7 +52,6 @@ class Login(QDialog):
         # basic use of bcrypt
         password = "password"
         bytes = password.encode('utf-8')
-        # invalid salt ?
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(bytes, salt)
         check_password = bcrypt.checkpw(self.loginPassword.text().encode('utf-8'), hash) # userInput, hash
@@ -62,19 +66,54 @@ class Login(QDialog):
         widget.addWidget(register)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
+    def _checkInput(self):
+        pass
+
 class Register(QDialog):
     def __init__(self):
         super().__init__()
         RegisterLayout = QVBoxLayout()
+
+        # create register form
+        registerTitle = QLabel("Register")
+        registerFormLayout = QFormLayout()
+        self.realName = QLineEdit()
+        self.setUsername = QLineEdit()
+        self.setBirthday = QDateEdit()
+        self.setPassword = QLineEdit()
+        registerFormLayout.addRow("real name", self.realName)
+        registerFormLayout.addRow("Birthday", self.setBirthday)
+        registerFormLayout.addRow("Username: ", self.setUsername) 
+        registerFormLayout.addRow("password", self.setPassword)
         complete = QPushButton("complete")
+        toLogin = QPushButton("back")
+        RegisterLayout.addWidget(registerTitle)
+        RegisterLayout.addLayout(registerFormLayout)
         RegisterLayout.addWidget(complete)
+        RegisterLayout.addWidget(toLogin)
+        # TODO: check whether there is empty blank
+        complete.clicked.connect(self._registerSubmit)
+        toLogin.clicked.connect(self._toLoginPage)
+        
+
         self.setLayout(RegisterLayout)
 
+    def _registerSubmit(self):
+        # TODO: write to database
+        pass
+
+    def _toLoginPage(self):
+        window = Login()
+        widget.addWidget(window)
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+    def _checkInput(self):
+        # TODO: whether any of the input is blank
+        pass
 
 class Window(QDialog):
     def __init__(self):
         super().__init__() # parent = None??
-        self.setWindowTitle("receipt system")
         self.appLayout = QVBoxLayout() #
         formLayout = QFormLayout()
 
