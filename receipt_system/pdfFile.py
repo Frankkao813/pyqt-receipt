@@ -18,7 +18,7 @@ def pdfFile(name, class_price, note):
     today_date = datetime.today().strftime("%d %b, %Y")
 
     # loading template
-    template_loader = jinja2.FileSystemLoader("./")
+    template_loader = jinja2.FileSystemLoader("../template")
     template_env = jinja2.Environment(loader = template_loader)
 
     template = template_env.get_template("template.html")
@@ -26,5 +26,5 @@ def pdfFile(name, class_price, note):
     output_text = template.render(context)
 
     config = pdfkit.configuration(wkhtmltopdf=r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe")
-    pdfkit.from_string(output_text, "pdf_generated.pdf", configuration = config, css="./style.css")
+    pdfkit.from_string(output_text, "../pdf_generated.pdf", configuration = config, css="../template/style.css")
 
