@@ -24,7 +24,7 @@ class Window(QDialog):
         self.name = QLineEdit()
         formLayout.addRow("Name: ", self.name)
         self.class_pricing = QPlainTextEdit()
-        formLayout.addRow("class,pricing: ", self.class_pricing)
+        formLayout.addRow("item,pricing: ", self.class_pricing)
         self.note = QLineEdit()
         formLayout.addRow("note", self.note)
 

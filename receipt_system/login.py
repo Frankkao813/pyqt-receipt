@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 )
 import bcrypt
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 from . import window
 from . import register
 #from .window import Window
@@ -31,9 +32,12 @@ class Login(QDialog):
         # setEchoMode: prevent from showing the password text
         self.loginPassword.setEchoMode(QLineEdit.EchoMode.Password) 
         loginFormLayout.addRow("Password: ", self.loginPassword) 
-        
         loginLayout.addLayout(loginFormLayout)
-        loginFormLayout.setFormAlignment(Qt.AlignmentFlag.AlignCenter)  # Question: addLayout then setFormAlignment 
+
+        # set the attribute of the widget layout
+        loginTitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        loginTitle.setFont(QFont('Arial', 20, 900, True))
+        loginFormLayout.setFormAlignment(Qt.AlignmentFlag.AlignHCenter)  # Question: addLayout then setFormAlignment 
 
         # login button and its related function
         loginButton = QPushButton("login")

@@ -1,9 +1,9 @@
 
 import sys
-from PyQt6 import QtWidgets
-from PyQt6.QtWidgets import (
-    QApplication
-)
+# from PyQt6 import QtWidgets
+# from PyQt6.QtWidgets import (
+#     QApplication
+# )
 from receipt_system.login import Login 
 # https://stackoverflow.com/questions/1383239/can-i-use-init-py-to-define-global-variables
 from receipt_system import app, widget # will it be working?
