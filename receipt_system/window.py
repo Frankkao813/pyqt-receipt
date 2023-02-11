@@ -55,7 +55,7 @@ class Window(QDialog):
         # generating pdf file
         pdfFile(name_data, class_pricing_data, note_data)
 
-        sys.exit()
+        #sys.exit()
 
     def _reject(self):
         # TODO: clear the dialog box

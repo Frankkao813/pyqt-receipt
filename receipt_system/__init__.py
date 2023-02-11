@@ -18,9 +18,10 @@ createTableQuery.exec(
     '''
     CREATE TABLE users (
         id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+        timestamp INTEGER NOT NULL,
         name VARCHAR(40) NOT NULL,
         birthday INTEGER NOT NULL,
-        password VARCHAR(40) NOT NULL
+        password VARCHAR(100) NOT NULL
     )
     
     '''
