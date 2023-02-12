@@ -1,3 +1,4 @@
+from receipt_system import insertDataQuery
 from PyQt6.QtWidgets import (
     QDialog,
     QLineEdit,
@@ -9,6 +10,7 @@ from PyQt6.QtWidgets import (
     QMessageBox,
     
 )
+from datetime import datetime
 
 #from login import Login
 from . import login
@@ -16,6 +18,8 @@ from . import window
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QFont
 from receipt_system import widget
+
+import bcrypt
 
 class Register(QDialog):
     def __init__(self):
@@ -52,9 +56,8 @@ class Register(QDialog):
         self.setLayout(RegisterLayout)
 
     def _toWindowPage(self):
-        # TODO: write to database
+        # show sucessfully entered message
 
-        # go to the window class
         window_Page = window.Window()
         widget.addWidget(window_Page)
         widget.setCurrentIndex(widget.currentIndex()+1)
@@ -67,15 +70,44 @@ class Register(QDialog):
 
     def _checkInput(self):
         # TODO: whether any of the input is blank
-        dateInput = self.setBirthday.date()
+        bdayInput = self.setBirthday.date()
+        bdayInputStr = self.setBirthday.date().toPyDate().strftime("%Y-%m-%d")
         dateToday = QDate.currentDate()
-        #year, month, day = QCalendar.partsFromDate(date)
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        realnameInput = self.realName.text()
+        usernameInput = self.setUsername.text()
+        passwordInput = self.setPassword.text()
+        
         errorMessage  = QMessageBox()
-        if (len(self.realName.text()) == 0 or len(self.setUsername.text()) == 0 or len(self.setPassword.text()) == 0):
+        if (len(realnameInput) == 0 or len(usernameInput) == 0 or len(passwordInput) == 0):
             errorMessage.critical(self, "error", "Please eneter text in each field.")
             errorMessage.setFixedSize(100,100)
-        elif (dateInput > dateToday):
+        elif (bdayInput > dateToday):
             errorMessage.critical(self, "error", "invalid date")
             errorMessage.setFixedSize(100,100)
-        else:
-            self._registerSubmit()
+        else: # check repetitive username - more simplistic method?
+            hashedPassword = self._hash(passwordInput)
+            result = self._writeToDataBase(timestamp, realnameInput, bdayInputStr, usernameInput, hashedPassword)
+            if(not result):
+                # already set the unique attribute in username field
+                errorMessage.critical(self, "error", "repetitve username")
+                errorMessage.setFixedSize(100,100)
+            else:
+                self._toWindowPage()
+    
+    @staticmethod
+    def _hash(password):
+        bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        hash = bcrypt.hashpw(bytes, salt)
+        return hash.decode('utf-8') # save to database
+
+    @staticmethod
+    def _writeToDataBase(timestamp, realname, birthday, username, password):
+        insertDataQuery.addBindValue(timestamp)
+        insertDataQuery.addBindValue(realname)
+        insertDataQuery.addBindValue(birthday)
+        insertDataQuery.addBindValue(username)
+        insertDataQuery.addBindValue(password)
+        result = insertDataQuery.exec()
+        return result

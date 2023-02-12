@@ -12,7 +12,6 @@ from PyQt6.QtWidgets import (
 #from .login import Login
 from . import login
 from .pdfFile import pdfFile
-import sys
 from receipt_system import widget
 
 class Window(QDialog):
