@@ -6,19 +6,17 @@ from PyQt6.QtWidgets import (
 )
 import bcrypt
 import datetime
-
-# about the database
-con = QSqlDatabase.addDatabase("QSQLITE")
-con.setDatabaseName(r"users.sqlite")
-if not con.open():
-    print(f"Database Error {con.lastError().databaseText()}")
-    sys.exit(1)
-print(f"The connection is {con.open()}")
+from .connectDb import connectDb
 
 
-if "users" not in con.tables():
-    createTableQuery = QSqlQuery()
-    createTableQuery.exec(
+#TODO: problems with multiple database connections
+db1 = connectDb(r"users.sqlite", "con1")
+db2 = connectDb(r"log.sqlite", "con2")
+queryDb1 = QSqlQuery(db1)
+queryDb2 = QSqlQuery(db2)
+
+if "users" not in db1.tables():
+    queryDb1.exec(
         '''
         CREATE TABLE users (
             id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
@@ -31,11 +29,28 @@ if "users" not in con.tables():
         
         '''
     )
-print(con.tables())
+
+if "log" not in db2.tables():
+    queryDb2.exec(
+        '''
+        CREATE TABLE log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT UNIQUE NOT NULL,
+            timestamp INTEGER NOT NULL,
+            userissue VARCHAR(40) NOT NULL,
+            name VARCHAR(40) NOT NULL,
+            item VARCHAR(100) NOT NULL,
+            note VARCHAR(100) NOT NULL
+        )
+        '''
+    ) 
+
+print(db1.tables())
+print(db2.tables())
+
 
 # creating dynamic queries
-insertDataQuery = QSqlQuery()
-insertDataQuery.prepare(
+
+insertUserDataQuery = queryDb1.prepare(
     '''
     INSERT INTO users (
         timestamp,
@@ -46,6 +61,20 @@ insertDataQuery.prepare(
     )
     VALUES (?, ?, ?, ?, ?)
     
+    '''
+)
+
+#insertLogDataQuery = db2.QSqlQuery()
+insertLogDataQuery = queryDb2.prepare (
+    '''
+    INSERT INTO log (
+        timestamp,
+        userissue,
+        name,
+        item,
+        note
+    )
+    VALUES (?, ?, ?, ?, ?)
     '''
 )
 

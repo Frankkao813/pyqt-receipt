@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
     QMessageBox
 )
 import bcrypt
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from . import window
 from . import register
@@ -18,6 +18,7 @@ from . import register
 #from register import Register
 
 class Login(QDialog):
+    # tranfer the text between pages
     def __init__(self):
         super().__init__()
         loginTitle = QLabel("login")
@@ -59,8 +60,11 @@ class Login(QDialog):
 
         if (self.loginName.text() == "testUser" and check_password):
             window_page = window.Window()
+            window_page.loginUser = self.loginName.text()
             widget.addWidget(window_page)
             widget.setCurrentIndex(widget.currentIndex()+1)
+        
+        
         
     
     def _toRegisterPage(self):

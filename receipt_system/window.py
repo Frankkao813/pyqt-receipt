@@ -5,7 +5,11 @@ from PyQt6.QtWidgets import (
     QLineEdit,
     QPlainTextEdit,
     QPushButton,
-    QDialogButtonBox
+    QDialogButtonBox,
+    QMessageBox,
+    QTabWidget,
+    QLabel,
+    QWidget
 
 )
 
@@ -13,21 +17,40 @@ from PyQt6.QtWidgets import (
 from . import login
 from .pdfFile import pdfFile
 from receipt_system import widget
+from datetime import datetime
+from receipt_system import queryDb2
+
 
 class Window(QDialog):
+    loginUser = ""
     def __init__(self):
         super().__init__() # parent = None??
-        self.appLayout = QVBoxLayout() #
-        formLayout = QFormLayout()
+        
+        tabWidget = QTabWidget()
+        self.appLayout = QVBoxLayout() # main layout
+        dataFormLayout = QFormLayout()
 
+        # the data input page
+        windowPage = QWidget(self)
+        windowPage.setLayout(dataFormLayout)
         self.name = QLineEdit()
-        formLayout.addRow("Name: ", self.name)
-        self.class_pricing = QPlainTextEdit()
-        formLayout.addRow("item,pricing: ", self.class_pricing)
+        dataFormLayout.addRow("Name: ", self.name)
+        self.classPricing = QPlainTextEdit()
+        dataFormLayout.addRow("item,pricing: ", self.classPricing)
         self.note = QLineEdit()
-        formLayout.addRow("note", self.note)
+        dataFormLayout.addRow("note", self.note)
 
-        self.appLayout.addLayout(formLayout)
+        # the account info page
+        accountInfoPage = QWidget(self)
+        infoLayout = QFormLayout()
+        accountInfoPage.setLayout(infoLayout)
+        infoLayout.addRow("First row", QLabel("Widget in Tab2."))
+        
+        tabWidget.addTab(windowPage, "data input")
+        tabWidget.addTab(accountInfoPage, "account info")
+        self.appLayout.addWidget(tabWidget)
+        #self.appLayout.addLayout(formLayout)
+        #self.appLayout.addWidget(tabWidget)
         
         self.buttons = QDialogButtonBox()
         self.buttons.setStandardButtons(
@@ -37,24 +60,14 @@ class Window(QDialog):
         self.logoutButton = QPushButton("Logout")
         # https://stackoverflow.com/questions/33547821/execute-function-after-click-ok-qdialogbuttonbox
         # try-except case
-        self.buttons.accepted.connect(self._accept)
+        self.buttons.accepted.connect(self._checkInput)
         self.buttons.rejected.connect(self._reject)
         self.logoutButton.clicked.connect(self._logout)
         
         self.appLayout.addWidget(self.buttons)
         self.appLayout.addWidget(self.logoutButton)
+        
         self.setLayout(self.appLayout)
-
-    def _accept(self):
-        # Q: how to extract the information in input box of formlayout?
-        name_data = self.name.text()
-        # http://www.learningaboutelectronics.com/Articles/How-to-retrieve-data-from-plain-text-edit-qt-widget-c++.php
-        class_pricing_data = self.class_pricing.toPlainText()
-        note_data = self.note.text()
-        # generating pdf file
-        pdfFile(name_data, class_pricing_data, note_data)
-
-        #sys.exit()
 
     def _reject(self):
         # TODO: clear the dialog box
@@ -68,4 +81,30 @@ class Window(QDialog):
         login_page = login.Login()
         widget.addWidget(login_page)
         widget.setCurrentIndex(widget.currentIndex()+1)
+    
+    def _checkInput(self):
+        completeStatus =  QMessageBox()
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        userIssue = self.loginUser # the person who issues the receipt, pass value between pages
+        nameInput = self.name.text()
+        classPricingInput = self.classPricing.toPlainText()
+        noteInput = self.note.text()
+        # TODO: some check conditions
+
+        result = self._writeToDatabase(timestamp, userIssue, nameInput, classPricingInput, noteInput)
+        if result:
+            completeStatus.information(self, "info", "sucessfully write to database")
+            completeStatus.setFixedSize(100,100)
+            pdfFile(nameInput, classPricingInput, noteInput)
+
+    @staticmethod
+    def _writeToDatabase(time, userIssue, name, classPrice, note):
+        queryDb2.addBindValue(time)
+        queryDb2.addBindValue(userIssue)
+        queryDb2.addBindValue(name)
+        queryDb2.addBindValue(classPrice)
+        queryDb2.addBindValue(note)
+        result = queryDb2.exec()
+        return result
+
 

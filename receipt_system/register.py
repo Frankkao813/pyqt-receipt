@@ -1,4 +1,4 @@
-from receipt_system import insertDataQuery
+from receipt_system import queryDb1
 from PyQt6.QtWidgets import (
     QDialog,
     QLineEdit,
@@ -104,10 +104,10 @@ class Register(QDialog):
 
     @staticmethod
     def _writeToDataBase(timestamp, realname, birthday, username, password):
-        insertDataQuery.addBindValue(timestamp)
-        insertDataQuery.addBindValue(realname)
-        insertDataQuery.addBindValue(birthday)
-        insertDataQuery.addBindValue(username)
-        insertDataQuery.addBindValue(password)
-        result = insertDataQuery.exec()
+        queryDb1.addBindValue(timestamp)
+        queryDb1.addBindValue(realname)
+        queryDb1.addBindValue(birthday)
+        queryDb1.addBindValue(username)
+        queryDb1.addBindValue(password)
+        result = queryDb1.exec()
         return result

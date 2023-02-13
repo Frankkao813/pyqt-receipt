@@ -15,10 +15,14 @@ The app currently has the following function
     * note: If there is additional information to contain in the receipt, it can be stored here
 4. (extension of 3.) After typing and press `OK`, a pdf will be generated. Like the one in `pdf_generated`. The template is from online source with minor adaptations using jinja2 commands
 
+5. database: `users.sqlite`, `receipt.sqlite`
+
+
+
 ### Currently working on
 1. database design: The following two info will be stored in database
-    * the user issuing receipt 
-    * the info of receipt
+    * the user issuing receipt: `users.sqlite`
+    * the info of receipt: `receipt.sqlite`
 2. making the UI look nicer
 3. add check conditions
 
