@@ -1,4 +1,4 @@
-from receipt_system import queryDb1
+
 from PyQt6.QtWidgets import (
     QDialog,
     QLineEdit,
@@ -11,14 +11,13 @@ from PyQt6.QtWidgets import (
     
 )
 from datetime import datetime
-
+from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 #from login import Login
 from . import login
 from . import window
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QFont
-from receipt_system import widget
-
+from receipt_system import widget, db1
 import bcrypt
 
 class Register(QDialog):
@@ -57,8 +56,9 @@ class Register(QDialog):
 
     def _toWindowPage(self):
         # show sucessfully entered message
-
+        # pass info from register to window page
         window_Page = window.Window()
+        window_Page.loginUser = self.setUsername.text()
         widget.addWidget(window_Page)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
@@ -104,10 +104,24 @@ class Register(QDialog):
 
     @staticmethod
     def _writeToDataBase(timestamp, realname, birthday, username, password):
-        queryDb1.addBindValue(timestamp)
-        queryDb1.addBindValue(realname)
-        queryDb1.addBindValue(birthday)
-        queryDb1.addBindValue(username)
-        queryDb1.addBindValue(password)
-        result = queryDb1.exec()
+        insertUserDataQuery = QSqlQuery(db1)
+        insertUserDataQuery.prepare(
+            '''
+            INSERT INTO users (
+                timestamp,
+                realname,
+                birthday,
+                username,
+                password
+            )
+            VALUES (?, ?, ?, ?, ?)
+            
+            '''
+        )
+        insertUserDataQuery.addBindValue(timestamp)
+        insertUserDataQuery.addBindValue(realname)
+        insertUserDataQuery.addBindValue(birthday)
+        insertUserDataQuery.addBindValue(username)
+        insertUserDataQuery.addBindValue(password)
+        result = insertUserDataQuery.exec()
         return result

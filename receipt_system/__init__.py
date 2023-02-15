@@ -64,19 +64,7 @@ insertUserDataQuery = queryDb1.prepare(
     '''
 )
 
-#insertLogDataQuery = db2.QSqlQuery()
-insertLogDataQuery = queryDb2.prepare (
-    '''
-    INSERT INTO log (
-        timestamp,
-        userissue,
-        name,
-        item,
-        note
-    )
-    VALUES (?, ?, ?, ?, ?)
-    '''
-)
+
 
 
 # about the app
