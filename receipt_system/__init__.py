@@ -6,12 +6,12 @@ from PyQt6.QtWidgets import (
 )
 import bcrypt
 import datetime
-from .connectDb import connectDb
+from .utility import connectDb
 
 
 #TODO: problems with multiple database connections
-db1 = connectDb(r"users.sqlite", "con1")
-db2 = connectDb(r"log.sqlite", "con2")
+db1 = utility(r"users.sqlite", "con1") 
+db2 = utility(r"log.sqlite", "con2")
 queryDb1 = QSqlQuery(db1)
 queryDb2 = QSqlQuery(db2)
 
@@ -46,24 +46,6 @@ if "log" not in db2.tables():
 
 print(db1.tables())
 print(db2.tables())
-
-
-# creating dynamic queries
-
-insertUserDataQuery = queryDb1.prepare(
-    '''
-    INSERT INTO users (
-        timestamp,
-        realname,
-        birthday,
-        username,
-        password
-    )
-    VALUES (?, ?, ?, ?, ?)
-    
-    '''
-)
-
 
 
 

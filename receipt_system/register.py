@@ -17,8 +17,9 @@ from . import login
 from . import window
 from PyQt6.QtCore import QDate, Qt
 from PyQt6.QtGui import QFont
-from receipt_system import widget, db1
+from receipt_system import widget, db1, db2
 import bcrypt
+from receipt_system.utility import returnInfo
 
 class Register(QDialog):
     def __init__(self):
@@ -54,11 +55,10 @@ class Register(QDialog):
         
         self.setLayout(RegisterLayout)
 
-    def _toWindowPage(self):
+    def _toWindowPage(self, count, time):
         # show sucessfully entered message
         # pass info from register to window page
-        window_Page = window.Window()
-        window_Page.loginUser = self.setUsername.text()
+        window_Page = window.Window(self.setUsername.text(), count, time)
         widget.addWidget(window_Page)
         widget.setCurrentIndex(widget.currentIndex()+1)
 
@@ -93,7 +93,8 @@ class Register(QDialog):
                 errorMessage.critical(self, "error", "repetitve username")
                 errorMessage.setFixedSize(100,100)
             else:
-                self._toWindowPage()
+                count, time = returnInfo(realnameInput, usernameInput)
+                self._toWindowPage(count, time)
     
     @staticmethod
     def _hash(password):
@@ -125,3 +126,4 @@ class Register(QDialog):
         insertUserDataQuery.addBindValue(password)
         result = insertUserDataQuery.exec()
         return result
+

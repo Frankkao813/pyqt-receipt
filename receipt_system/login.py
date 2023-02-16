@@ -1,5 +1,6 @@
 
-from receipt_system import widget
+from receipt_system import widget, db1
+from receipt_system.utility import returnInfo
 from PyQt6.QtWidgets import (
     QDialog,
     QLabel,
@@ -10,12 +11,12 @@ from PyQt6.QtWidgets import (
     QMessageBox
 )
 import bcrypt
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 from . import window
 from . import register
-#from .window import Window
-#from register import Register
+
 
 class Login(QDialog):
     # tranfer the text between pages
@@ -57,16 +58,17 @@ class Login(QDialog):
         salt = bcrypt.gensalt()
         hash = bcrypt.hashpw(bytes, salt)
         check_password = bcrypt.checkpw(self.loginPassword.text().encode('utf-8'), hash) # userInput, hash
-
-        if (self.loginName.text() == "testUser" and check_password):
+        #TODO: database check
+        #TODO: fetch from database
+        inputCheck = self._checkUsernameAndPassword(self.loginName.text(), self.loginPassword.text())
+        if (inputCheck):
+            count, time = returnInfo() # ??
             window_page = window.Window()
-            window_page.loginUser = self.loginName.text()
+            
             widget.addWidget(window_page)
             widget.setCurrentIndex(widget.currentIndex()+1)
         
         
-        
-    
     def _toRegisterPage(self):
         register_page = register.Register()
         widget.addWidget(register_page)
@@ -81,3 +83,21 @@ class Login(QDialog):
         else:
             self._checkUser()
 
+    @staticmethod
+    def _checkUsernameAndPassword(user, passwordField) -> bool:
+        findPassword = QSqlQuery(db1)
+        findPassword.prepare(
+            '''
+            SELECT password from users WHERE username = :name
+            '''
+        )
+        findPassword.bindValue(":name", user)
+        findPassword.exec()
+        findPassword.next()
+        passwordDb = findPassword.value(0)
+        # the user does not exist
+        if(len(passwordDb) == 0):
+            return False
+    
+        check_password = bcrypt.checkpw(passwordField.encode('utf-8'), passwordDb.encode('utf-8')) # userInput, hash
+        return check_password

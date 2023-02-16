@@ -23,12 +23,15 @@ from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 
 
 
+
+
 class Window(QDialog):
-    loginUser = ""
-    timeCreated = ""
-    numReceiptIssued = ""
-    def __init__(self):
+
+    def __init__(self, username = "", count = "", time = ""):
         super().__init__() # parent = None??
+        self.loginUser = username
+        self.timeCreated = time
+        self.numReceiptIssued = count
         
         tabWidget = QTabWidget()
         self.appLayout = QVBoxLayout() # main layout
@@ -45,15 +48,21 @@ class Window(QDialog):
         self.note = QLineEdit()
         dataFormLayout.addRow("note", self.note)
 
-        # the account info page
-        if (self.timeCreated == '' or self.numReceiptIssued == ''):
-            count, time = self._returnInfo()
-            self.timeCreated = time
-            self.numReceiptIssued = count
+        # # the account info page
+        # if len(self.loginUser) != 0:
+        #     try:
+        #         count, time = self._returnInfo()
+        #     except TypeError:
+        #         print("not executed.")
+
+        #print("The info at this position", count, time)
+
         accountInfoPage = QWidget(self)
         infoLayout = QFormLayout()
         accountInfoPage.setLayout(infoLayout)
-        infoLayout.addRow("username", QLabel(self.loginUser)) # why it doesn't show?
+
+        # issue: the following three lines doesn;t show properly, why?
+        infoLayout.addRow("username", QLabel(self.loginUser)) 
         infoLayout.addRow("created time", QLabel(self.timeCreated))
         infoLayout.addRow("num of receipt issued", QLabel(str(self.numReceiptIssued)))
         
@@ -75,7 +84,7 @@ class Window(QDialog):
         self.buttons.rejected.connect(self._clear)
         self.logoutButton.clicked.connect(self._logout)
         
-        self.appLayout.addWidget(self.buttons)
+        dataFormLayout.addWidget(self.buttons)
         self.appLayout.addWidget(self.logoutButton)
         
         self.setLayout(self.appLayout)
@@ -83,9 +92,8 @@ class Window(QDialog):
     def _clear(self):
         # TODO: clear the dialog box
         self.name.setText("")
-        self.class_pricing.clear()
+        self.classPricing.clear()
         self.note.setText("")
-        print("request declined.")
         # sys.exit()
     
     def _logout(self):
@@ -100,15 +108,22 @@ class Window(QDialog):
         nameInput = self.name.text()
         classPricingInput = self.classPricing.toPlainText()
         noteInput = self.note.text()
+        classPricingFormat = self._checkclassPricingFormat(classPricingInput)
         # TODO: some check conditions
-
-        result = self._writeToDatabase(timestamp, userIssue, nameInput, classPricingInput, noteInput)
-        if result:
-            completeStatus.information(self, "info", "sucessfully write to database")
+        if (len(nameInput) == 0 or len(classPricingInput) == 0 or len(noteInput) == 0):
+            completeStatus.critical(self, "error", "repetitve username")
             completeStatus.setFixedSize(100,100)
-            pdfFile(nameInput, classPricingInput, noteInput)
-            # clean the cell input
-            self._clear()
+        elif not classPricingFormat:
+            completeStatus.critical(self, "error", "wrong format")
+            completeStatus.setFixedSize(100,100)
+        else:
+            result = self._writeToDatabase(timestamp, userIssue, nameInput, classPricingInput, noteInput)
+            if result:
+                completeStatus.information(self, "info", "sucessfully write to database, generating pdf file...")
+                completeStatus.setFixedSize(100,100)
+                pdfFile(nameInput, classPricingInput, noteInput)
+                # clean the cell input
+                self._clear()
 
     @staticmethod
     def _writeToDatabase(time, userIssue, name, classPrice, note):
@@ -134,23 +149,32 @@ class Window(QDialog):
             result = insertLogDataQuery.exec()
         return result
     
-    def _returnInfo(self):
-        # find number of receipt issued
-        numReceiptIssuedQuery = QSqlQuery(db2)
-        numReceiptIssuedQuery.exec("SELECT userissue FROM log WHERE userissue = '王大明' ")
-        numReceiptIssuedQuery.last()
-        count = numReceiptIssuedQuery.at() + 1 # first parameter passed
+    @staticmethod
+    def _checkclassPricingFormat(formatting):
+        # strip all the '\n' elements, then the comma
+        newlineStrip = formatting.split('\n')
+        temp = ""
+        commaStrip = []
+        # strip the comma
+        for idx, element in enumerate(newlineStrip):
+            temp = element.split(",")
+            commaStrip.append(temp)
 
-        # find the time the account is created
-        findTimeQuery = QSqlQuery(db1)
-        findTimeQuery.prepare("SELECT timestamp FROM users WHERE username == :loginUser")
-        findTimeQuery.bindValue(":loginUser", self.loginUser)
-        findTimeQuery.exec()
-        findTimeQuery.next()
-        time = findTimeQuery.value(0)
-
-        return count, time # not completed
+        # check whether the element in the array can be converted
+        for idx, element in enumerate(commaStrip):
+            try:
+                element[0] = str(element[0])
+                element[1] = int(element[1])
+            except TypeError:
+                return False
         
+        return True
+
+
+
+
+
+    
 
         
 

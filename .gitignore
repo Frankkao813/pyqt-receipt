@@ -1,1 +1,3 @@
-./receipt-system/__pycache__
+./receipt_system/__pycache__
+./trial.sqlite
+./trial_code.py
